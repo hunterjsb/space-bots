@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 )
 
 type User struct {
@@ -16,23 +15,46 @@ type User struct {
 	Registered bool   `json:"registered"`
 }
 
-func (u *User) Me() {
-	e := Endpoint{"/users/me", "GET"}
+func (u *User) Me() error {
+	e := &Endpoint{"/users/me", "GET"}
 	resp, err := e.Request(nil)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	err = json.Unmarshal(body, u)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	fmt.Printf("%+v\n", u)
+	return nil
+}
+
+func (u *User) Fleets() ([]Fleet, error) {
+	e := &Endpoint{"/fleets/my", "GET"}
+	resp, err := e.Request(nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var fleets []Fleet
+	err = json.Unmarshal(body, &fleets)
+	if err != nil {
+		return nil, err
+	}
+
+	return fleets, nil
 }

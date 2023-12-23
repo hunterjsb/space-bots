@@ -10,7 +10,7 @@ var Client *http.Client = &http.Client{}
 
 const base string = "https://space-bots.longwelwind.net/v1"
 
-var GoUser User = User{Key: utils.Env["TOKEN"]}
+var Player User = User{Key: utils.Env["TOKEN"]}
 
 type Endpoint struct {
 	Route  string
@@ -23,7 +23,7 @@ func (e *Endpoint) Request(body io.Reader) (*http.Response, error) {
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+GoUser.Key)
+	req.Header.Set("Authorization", "Bearer "+Player.Key)
 
 	return Client.Do(req)
 }
