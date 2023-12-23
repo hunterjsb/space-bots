@@ -14,9 +14,13 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Printf("fleets: %v\n", len(fleets))
-	sys := fleets[0].CurrentSystem()
+	fleet := fleets[0]
+	sys := fleet.CurrentSystem()
 	fmt.Println("neighbors: ", sys.NeighboringSystems)
 
-	lastSys := models.System{ID: sys.NeighboringSystems[len(sys.NeighboringSystems)-1]["systemId"]}
-	lastSys.About()
+	// lastSys := &models.System{ID: sys.NeighboringSystems[len(sys.NeighboringSystems)-1]["systemId"]}
+	// lastSys.About()
+
+	// fleet.Travel(lastSys)
+	// fleet.CurrentSystem()
 }

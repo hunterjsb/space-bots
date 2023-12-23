@@ -15,8 +15,13 @@ type User struct {
 	Registered bool   `json:"registered"`
 }
 
+var endpoints map[string]*Endpoint = map[string]*Endpoint{
+	"Me":     {"/users/me", "GET"},
+	"Fleets": {"/fleets/my", "GET"},
+}
+
 func (u *User) Me() error {
-	e := &Endpoint{"/users/me", "GET"}
+	e := endpoints["Me"]
 	resp, err := e.Request(nil)
 	if err != nil {
 		return err
