@@ -18,8 +18,10 @@ type Fleet struct {
 }
 
 func (f *Fleet) CurrentSystem() *System {
-	sys := &System{ID: f.LocationSystemId}
-	sys.About()
+	sys, err := GetSystem(f.LocationSystemId)
+	if err != nil { // I don't actually think this can ever err
+		log.Fatal(err)
+	}
 	return sys
 }
 
@@ -45,29 +47,30 @@ func (f *Fleet) Mine() {
 	fmt.Println(resp.StatusCode, data)
 }
 
-func (f *Fleet) Travel(sys *System) {
+func (f *Fleet) Travel(sys *System) error {
 	// I don't think this works
 	jsonData, err := json.Marshal(map[string]string{"destinationSystemId": sys.ID})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	e := &Endpoint{"/fleets/" + f.ID + "/travel", "POST"}
 	resp, err := e.Request(bytes.NewReader(jsonData))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	var data interface{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	fmt.Println(resp.StatusCode, data)
+	return nil
 }

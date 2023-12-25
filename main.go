@@ -16,5 +16,5 @@ func main() {
 
 	fmt.Printf("fleets: %v\n", len(fleets))
 	fleet := fleets[0]
-	fmt.Printf("%+v\n", fleet)
+	fmt.Printf("%+v\n", fleet.CurrentSystem())
 }

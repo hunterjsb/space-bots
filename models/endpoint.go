@@ -6,7 +6,7 @@ import (
 	"spacebots/utils"
 )
 
-var Client *http.Client = &http.Client{}
+var client *http.Client = &http.Client{}
 
 const base string = "https://space-bots.longwelwind.net/v1"
 
@@ -28,5 +28,5 @@ func (e *Endpoint) Request(body io.Reader) (*http.Response, error) {
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	return Client.Do(req)
+	return client.Do(req)
 }
