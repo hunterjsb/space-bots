@@ -22,13 +22,21 @@ type System struct {
 	NeighboringSystems []map[string]string `json:"neighboringSystems"`
 }
 
-func GetSystem(systemID string) *System {
+func GetSystem(systemID string) (*System, error) {
 	e := Endpoint{"/systems/" + systemID, "GET"}
-	resp, _ := e.Request(nil)
-	body, _ := io.ReadAll(resp.Body)
+	resp, err := e.Request(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
 	var s System
 	json.Unmarshal(body, &s)
-	return &s
+	return &s, nil
 }
 
 func (s *System) About() error {
