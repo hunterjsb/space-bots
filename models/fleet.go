@@ -3,6 +3,8 @@ package models
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 )
 
@@ -21,15 +23,51 @@ func (f *Fleet) CurrentSystem() *System {
 	return sys
 }
 
+func (f *Fleet) Mine() {
+	e := &Endpoint{"/fleets/" + f.ID + "/mine", "POST"}
+	resp, err := e.Request(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var data interface{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(resp.StatusCode, data)
+}
+
 func (f *Fleet) Travel(sys *System) {
+	// I don't think this works
 	jsonData, err := json.Marshal(map[string]string{"destinationSystemId": sys.ID})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	e := &Endpoint{"/fleets/" + f.ID + "/travel", "POST"}
-	_, err = e.Request(bytes.NewReader(jsonData))
+	resp, err := e.Request(bytes.NewReader(jsonData))
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var data interface{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(resp.StatusCode, data)
 }

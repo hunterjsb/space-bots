@@ -24,6 +24,9 @@ func (e *Endpoint) Request(body io.Reader) (*http.Response, error) {
 	}
 
 	req.Header.Set("Authorization", "Bearer "+Player.Key)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 
 	return Client.Do(req)
 }

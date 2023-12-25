@@ -22,6 +22,15 @@ type System struct {
 	NeighboringSystems []map[string]string `json:"neighboringSystems"`
 }
 
+func GetSystem(systemID string) *System {
+	e := Endpoint{"/systems/" + systemID, "GET"}
+	resp, _ := e.Request(nil)
+	body, _ := io.ReadAll(resp.Body)
+	var s System
+	json.Unmarshal(body, &s)
+	return &s
+}
+
 func (s *System) About() error {
 	if s.ID == "" {
 		return errors.New("System is missing ID")
