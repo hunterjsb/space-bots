@@ -3,6 +3,7 @@ package models
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -17,44 +18,71 @@ type Fleet struct {
 	Ships            map[string]int    `json:"ships"`
 }
 
-func (f *Fleet) CurrentSystem() *System {
+type ActionResult struct {
+	Duration   int    `json:"duration"`
+	FinishTime string `json:"finishTime"`
+}
+
+func (f *Fleet) Get() error {
+	e := Endpoint{"/fleets/" + f.ID, "GET"}
+	resp, err := e.Request(nil)
+	if err != nil {
+		return err
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(body, f)
+	return nil
+}
+
+func (f *Fleet) System() *System {
 	sys, err := GetSystem(f.LocationSystemId)
-	if err != nil { // I don't actually think this can ever err
+	if err != nil {
 		log.Fatal(err)
 	}
 	return sys
 }
 
-func (f *Fleet) Mine() {
+func (f *Fleet) Mine() (*ActionResult, error) {
 	e := &Endpoint{"/fleets/" + f.ID + "/mine", "POST"}
 	resp, err := e.Request(nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	var data interface{}
-	err = json.Unmarshal(body, &data)
+	var res ActionResult
+	err = json.Unmarshal(body, &res)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	fmt.Println(resp.StatusCode, data)
+	return &res, nil
 }
 
-func (f *Fleet) DirectSell(resouces map[string]int) {
+func (f *Fleet) DirectSell(resouces map[string]int) (int, error) {
 	e := Endpoint{"/fleets/" + f.ID + "/direct-sell", "POST"}
-	jsonData, _ := json.Marshal(map[string]map[string]int{"resources": resouces})
-	resp, _ := e.Request(bytes.NewReader(jsonData))
+	jsonData, err := json.Marshal(map[string]map[string]int{"resources": resouces})
+	if err != nil {
+		return 0, nil
+	}
+	resp, err := e.Request(bytes.NewReader(jsonData))
+	if err != nil {
+		return 0, nil
+	}
+	if resp.StatusCode != 200 {
+		return 0, errors.New("Error selling resources, " + fmt.Sprint(resp.StatusCode))
+	}
 	body, _ := io.ReadAll(resp.Body)
-	var data interface{}
+	var data map[string]int
 	json.Unmarshal(body, &data)
-	fmt.Println(resp.StatusCode, data)
+	return data["creditsGained"], nil
 }
 
 func (f *Fleet) Travel(sys *System) error {
@@ -70,6 +98,49 @@ func (f *Fleet) Travel(sys *System) error {
 		return err
 	}
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var data ActionResult
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return errors.New("Error travelling to system, " + fmt.Sprint(resp.StatusCode))
+	}
+	return nil
+}
+
+func (f *Fleet) Buy(ships map[string]int) (int, error) {
+	jsonData, err := json.Marshal(map[string]map[string]int{"shipsToBuy": ships})
+	if err != nil {
+		return 0, err
+	}
+	e := Endpoint{"/fleets/" + f.ID + "/buy-ships", "POST"}
+	resp, err := e.Request(bytes.NewReader(jsonData))
+	if err != nil {
+		return 0, err
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+	var creditsSpent map[string]int
+	json.Unmarshal(body, &creditsSpent)
+	fmt.Println("BUY RESULTS: ", resp.StatusCode, creditsSpent)
+	return creditsSpent["creditsSpent"], nil
+}
+
+func ShipTypes() error {
+	e := Endpoint{"/ship-types", "GET"}
+	resp, err := e.Request(nil)
+	if err != nil {
+		return err
+	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
