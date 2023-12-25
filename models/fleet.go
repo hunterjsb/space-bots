@@ -47,6 +47,16 @@ func (f *Fleet) Mine() {
 	fmt.Println(resp.StatusCode, data)
 }
 
+func (f *Fleet) DirectSell(resouces map[string]int) {
+	e := Endpoint{"/fleets/" + f.ID + "/direct-sell", "POST"}
+	jsonData, _ := json.Marshal(map[string]map[string]int{"resources": resouces})
+	resp, _ := e.Request(bytes.NewReader(jsonData))
+	body, _ := io.ReadAll(resp.Body)
+	var data interface{}
+	json.Unmarshal(body, &data)
+	fmt.Println(resp.StatusCode, data)
+}
+
 func (f *Fleet) Travel(sys *System) error {
 	// I don't think this works
 	jsonData, err := json.Marshal(map[string]string{"destinationSystemId": sys.ID})

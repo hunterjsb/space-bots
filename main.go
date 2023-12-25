@@ -16,5 +16,6 @@ func main() {
 
 	fmt.Printf("fleets: %v\n", len(fleets))
 	fleet := fleets[0]
-	fmt.Printf("%+v\n", fleet.CurrentSystem())
+	fmt.Printf("%+v\n", fleet)
+	fleet.DirectSell(map[string]int{"aluminium": 1})
 }
