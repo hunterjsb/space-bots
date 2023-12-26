@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func loopMine(f *models.Fleet) {
+func infiniMine(f *models.Fleet) {
 	for {
 		res, _ := f.Mine()
 		fmt.Printf("cargo: %+v current action: %+v action results: %+v\n", f.Cargo, f.CurrentAction, res)
@@ -21,5 +21,5 @@ func main() {
 
 	fmt.Printf("fleets: %v\n", len(fleets))
 	fleet := fleets[0]
-	loopMine(&fleet)
+	infiniMine(&fleet)
 }

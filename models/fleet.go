@@ -19,8 +19,8 @@ type Fleet struct {
 }
 
 type ActionResult struct {
-	Duration   int    `json:"duration"`
-	FinishTime string `json:"finishTime"`
+	Duration   float64 `json:"duration"`
+	FinishTime string  `json:"finishTime"`
 }
 
 func (f *Fleet) Get() error {
@@ -70,49 +70,55 @@ func (f *Fleet) DirectSell(resouces map[string]int) (int, error) {
 	e := Endpoint{"/fleets/" + f.ID + "/direct-sell", "POST"}
 	jsonData, err := json.Marshal(map[string]map[string]int{"resources": resouces})
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	resp, err := e.Request(bytes.NewReader(jsonData))
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	if resp.StatusCode != 200 {
 		return 0, errors.New("Error selling resources, " + fmt.Sprint(resp.StatusCode))
 	}
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
 	var data map[string]int
-	json.Unmarshal(body, &data)
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		return 0, err
+	}
 	return data["creditsGained"], nil
 }
 
-func (f *Fleet) Travel(sys *System) error {
+func (f *Fleet) Travel(sys *System) (*ActionResult, error) {
 	// I don't think this works
 	jsonData, err := json.Marshal(map[string]string{"destinationSystemId": sys.ID})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	e := &Endpoint{"/fleets/" + f.ID + "/travel", "POST"}
 	resp, err := e.Request(bytes.NewReader(jsonData))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var data ActionResult
-	err = json.Unmarshal(body, &data)
+	var res ActionResult
+	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != 200 {
-		return errors.New("Error travelling to system, " + fmt.Sprint(resp.StatusCode))
+		return nil, errors.New("Error travelling to system, " + fmt.Sprint(resp.StatusCode))
 	}
-	return nil
+	return &res, nil
 }
 
 func (f *Fleet) Buy(ships map[string]int) (int, error) {
